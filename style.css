@@ -1,4 +1,10 @@
-/* basic theme colors */
+@font-face {
+    font-family: 'Luna';
+    src: url('assets/fonts/Luna.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 :root {
     --ghibli-green: #3d6b4f;
     --ghibli-green-dark: #2a4a37;
@@ -16,11 +22,10 @@
     --transition-speed: 0.25s;
 }
 
-/* page background */
 body {
     background: url('assets/bg-characters.jpg') center/cover no-repeat fixed;
     background-color: #f9faf7;
-    font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Luna', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     color: #333;
     min-height: 100vh;
     margin: 0;
@@ -36,7 +41,6 @@ body::before {
     min-height: 100vh;
 }
 
-/* header text */
 header h1 {
     letter-spacing: -0.02em;
     color: var(--ghibli-green-dark);
@@ -52,7 +56,6 @@ header .lead {
     color: var(--ghibli-green) !important;
 }
 
-/* accordion */
 .accordion {
     border-radius: 12px !important;
     overflow: hidden;
@@ -74,7 +77,6 @@ header .lead {
     border-bottom: none !important;
 }
 
-/* accordion buttons with images */
 .accordion-button {
     font-weight: 600;
     font-size: 1.05rem;
@@ -125,7 +127,6 @@ header .lead {
     border-top: 1px solid #eef2ee;
 }
 
-/* form controls */
 .form-control,
 .form-select {
     border-radius: 8px;
@@ -182,7 +183,6 @@ header .lead {
     100% { opacity: 1; transform: translateX(0); }
 }
 
-/* place cards */
 .place-card {
     border-radius: 12px;
     border: 2px solid #e8ece8;
@@ -244,7 +244,6 @@ header .lead {
     background-color: var(--ghibli-green) !important;
 }
 
-/* button */
 .btn-ghibli {
     background-color: var(--ghibli-green) !important;
     color: #fff !important;
@@ -261,7 +260,6 @@ header .lead {
     box-shadow: 0 6px 24px rgba(61,107,79,0.35) !important;
 }
 
-/* summary */
 .summary-card {
     border-radius: 16px;
     overflow: hidden;
@@ -290,7 +288,6 @@ header .lead {
     color: var(--ghibli-green) !important;
 }
 
-/* responsive */
 @media (max-width: 767.98px) {
     .accordion-button { font-size: 0.95rem; padding: 0.85rem 1rem; }
     .accordion-body { padding: 1rem; }
