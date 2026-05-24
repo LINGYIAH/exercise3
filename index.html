@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ghibli Park Trip Planner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <div class="container py-4 py-md-5">
+      <header class="text-center mb-4 mb-md-5">
+        <h1 class="display-5 fw-bold text-ghibli">Ghibli Park Trip Planner</h1>
+        <p class="text-muted lead">Plan your magical journey to Ghibli Park</p>
+      </header>
+
+      <form @submit.prevent="generateItinerary" novalidate>
+        <div class="accordion shadow-sm rounded-3 overflow-hidden" id="tripAccordion">
+
+          <!-- Panel 1: Personal Details -->
+          <div class="accordion-item border-0">
+            <h2 class="accordion-header" id="headingOne">
+              <button class="accordion-button panel-bg-1" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                Personal Details
+              </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse show"
+                 aria-labelledby="headingOne" data-bs-parent="#tripAccordion">
+              <div class="accordion-body bg-light-subtle">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label for="fullName" class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                    <input type="text" id="fullName" class="form-control"
+                           :class="{ 'is-invalid': errors.fullName }"
+                           v-model="form.fullName" placeholder="Enter your full name">
+                    <span v-if="errors.fullName" class="error-message">{{ errors.fullName }}</span>
+                  </div>
+                  <div class="col-md-6 col-12">
+                    <label for="dob" class="form-label fw-semibold">Date of Birth <span class="text-danger">*</span></label>
+                    <input type="date" id="dob" class="form-control"
+                           :class="{ 'is-invalid': errors.dob }" v-model="form.dob">
+                    <span v-if="errors.dob" class="error-message">{{ errors.dob }}</span>
+                  </div>
+                  <div class="col-md-6 col-12">
+                    <label class="form-label fw-semibold d-block">Gender <span class="text-danger">*</span></label>
+                    <div class="d-flex gap-3 flex-wrap pt-1">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="gender" id="genderMale"
+                               value="Male" v-model="form.gender">
+                        <label class="form-check-label" for="genderMale">Male</label>
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="gender" id="genderFemale"
+                               value="Female" v-model="form.gender">
+                        <label class="form-check-label" for="genderFemale">Female</label>
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="gender" id="genderOther"
+                               value="Other" v-model="form.gender">
+                        <label class="form-check-label" for="genderOther">Other</label>
+                      </div>
+                    </div>
+                    <span v-if="errors.gender" class="error-message d-block">{{ errors.gender }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 2: Park Selection -->
+          <div class="accordion-item border-0">
+            <h2 class="accordion-header" id="headingTwo">
+              <button class="accordion-button collapsed panel-bg-2" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                Ghibli Park Selection
+              </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse"
+                 aria-labelledby="headingTwo" data-bs-parent="#tripAccordion">
+              <div class="accordion-body bg-light-subtle">
+                <div v-if="isLoadingPlaces" class="text-center py-5">
+                  <div class="spinner-border text-ghibli" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <p class="mt-3 text-muted">Loading places...</p>
+                </div>
+                <div v-if="placesError" class="alert alert-danger" role="alert">
+                  {{ placesError }}
+                </div>
+                <div v-if="!isLoadingPlaces && !placesError" class="row g-3">
+                  <div class="col-lg-4 col-md-6 col-12" v-for="place in places" :key="place.id">
+                    <div class="card place-card h-100"
+                         :class="{ 'place-selected': isPlaceSelected(place.id) }"
+                         @click="togglePlace(place.id)"
+                         role="button" tabindex="0">
+                      <img :src="place.image" class="card-img-top place-card-img"
+                           :alt="place.name" @error="handleImageError($event, place)" loading="lazy">
+                      <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold">{{ place.name }}</h5>
+                        <p class="card-text text-muted small flex-grow-1">{{ place.description }}</p>
+                        <div v-if="isPlaceSelected(place.id)" class="selected-badge">
+                          <span class="badge bg-success">Selected</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <span v-if="errors.selectedPlaces" class="error-message d-block mt-3">
+                  {{ errors.selectedPlaces }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 3: Visitors -->
+          <div class="accordion-item border-0">
+            <h2 class="accordion-header" id="headingThree">
+              <button class="accordion-button collapsed panel-bg-3" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                Visitors Details
+              </button>
+            </h2>
+            <div id="collapseThree" class="accordion-collapse collapse"
+                 aria-labelledby="headingThree" data-bs-parent="#tripAccordion">
+              <div class="accordion-body bg-light-subtle">
+                <div class="row g-3">
+                  <div class="col-md-6 col-12">
+                    <label for="totalVisitors" class="form-label fw-semibold">
+                      Total number of visitors <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" id="totalVisitors" class="form-control"
+                           :class="{ 'is-invalid': errors.totalVisitors }"
+                           v-model.number="form.totalVisitors" min="1" placeholder="e.g., 2">
+                    <span v-if="errors.totalVisitors" class="error-message">{{ errors.totalVisitors }}</span>
+                  </div>
+                  <div class="col-md-6 col-12">
+                    <label for="totalChildren" class="form-label fw-semibold">
+                      Total number of children <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" id="totalChildren" class="form-control"
+                           :class="{ 'is-invalid': errors.totalChildren }"
+                           v-model.number="form.totalChildren" min="0" placeholder="e.g., 1">
+                    <span v-if="errors.totalChildren" class="error-message">{{ errors.totalChildren }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 4: Accommodation -->
+          <div class="accordion-item border-0">
+            <h2 class="accordion-header" id="headingFour">
+              <button class="accordion-button collapsed panel-bg-4" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                Accommodation
+              </button>
+            </h2>
+            <div id="collapseFour" class="accordion-collapse collapse"
+                 aria-labelledby="headingFour" data-bs-parent="#tripAccordion">
+              <div class="accordion-body bg-light-subtle">
+                <div class="row">
+                  <div class="col-md-8 col-12">
+                    <label for="accommodation" class="form-label fw-semibold">
+                      Select Accommodation <span class="text-danger">*</span>
+                    </label>
+                    <select id="accommodation" class="form-select"
+                            :class="{ 'is-invalid': errors.accommodation }"
+                            v-model="form.accommodation">
+                      <option value="" disabled>Please select accommodation...</option>
+                      <option v-for="option in accommodationOptions" :key="option.value"
+                              :value="option.value">{{ option.text }}</option>
+                    </select>
+                    <span v-if="errors.accommodation" class="error-message">{{ errors.accommodation }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 5: Payment -->
+          <div class="accordion-item border-0">
+            <h2 class="accordion-header" id="headingFive">
+              <button class="accordion-button collapsed panel-bg-5" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                Payment Details
+              </button>
+            </h2>
+            <div id="collapseFive" class="accordion-collapse collapse"
+                 aria-labelledby="headingFive" data-bs-parent="#tripAccordion">
+              <div class="accordion-body bg-light-subtle">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label for="cardholderName" class="form-label fw-semibold">
+                      Name of cardholder <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="cardholderName" class="form-control"
+                           :class="{ 'is-invalid': errors.cardholderName }"
+                           v-model="form.cardholderName" placeholder="Name as it appears on card">
+                    <span v-if="errors.cardholderName" class="error-message">{{ errors.cardholderName }}</span>
+                  </div>
+                  <div class="col-md-8 col-12">
+                    <label for="cardNumber" class="form-label fw-semibold">
+                      Card number <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="cardNumber" class="form-control"
+                           :class="{ 'is-invalid': errors.cardNumber }"
+                           v-model="form.cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                    <span v-if="errors.cardNumber" class="error-message">{{ errors.cardNumber }}</span>
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label for="expirationDate" class="form-label fw-semibold">
+                      Expiration Date <span class="text-danger">*</span>
+                    </label>
+                    <input type="month" id="expirationDate" class="form-control"
+                           :class="{ 'is-invalid': errors.expirationDate }"
+                           v-model="form.expirationDate">
+                    <span v-if="errors.expirationDate" class="error-message">{{ errors.expirationDate }}</span>
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label for="cvv" class="form-label fw-semibold">
+                      CVV <span class="text-danger">*</span>
+                    </label>
+                    <input type="password" id="cvv" class="form-control"
+                           :class="{ 'is-invalid': errors.cvv }"
+                           v-model="form.cvv" placeholder="..." maxlength="4">
+                    <span v-if="errors.cvv" class="error-message">{{ errors.cvv }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /accordion -->
+
+        <div class="text-center mt-4 mt-md-5">
+          <button type="submit" class="btn btn-ghibli btn-lg px-5 py-3 fw-bold shadow-sm">
+            Generate Itinerary
+          </button>
+        </div>
+
+        <div v-if="generalError" class="alert alert-danger mt-3 text-center fw-semibold" role="alert">
+          {{ generalError }}
+        </div>
+      </form>
+
+      <!-- Summary section -->
+      <div v-if="showSummary" class="mt-4 mt-md-5">
+        <div class="card summary-card shadow-lg border-success">
+          <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h3 class="h5 mb-0">Your Trip Itinerary Summary</h3>
+            <button type="button" class="btn-close btn-close-white"
+                    @click="showSummary = false" aria-label="Close summary"></button>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <h4 class="h6 text-ghibli fw-bold border-bottom pb-2">Personal Information</h4>
+                <ul class="list-unstyled mb-0 small">
+                  <li class="mb-1"><strong>Full Name:</strong> {{ form.fullName }}</li>
+                  <li class="mb-1"><strong>Date of Birth:</strong> {{ formatDate(form.dob) }}</li>
+                  <li class="mb-1"><strong>Gender:</strong> {{ form.gender }}</li>
+                </ul>
+              </div>
+              <div class="col-md-6">
+                <h4 class="h6 text-ghibli fw-bold border-bottom pb-2">Selected Places</h4>
+                <ul class="list-unstyled mb-0 small">
+                  <li v-for="placeId in selectedPlaces" :key="placeId" class="mb-1">
+                    - {{ getPlaceNameById(placeId) }}
+                  </li>
+                  <li v-if="selectedPlaces.length === 0" class="text-muted">No places selected</li>
+                </ul>
+              </div>
+              <div class="col-md-6">
+                <h4 class="h6 text-ghibli fw-bold border-bottom pb-2">Visitors</h4>
+                <ul class="list-unstyled mb-0 small">
+                  <li class="mb-1"><strong>Total Visitors:</strong> {{ form.totalVisitors }}</li>
+                  <li class="mb-1"><strong>Total Children:</strong> {{ form.totalChildren }}</li>
+                </ul>
+              </div>
+              <div class="col-md-6">
+                <h4 class="h6 text-ghibli fw-bold border-bottom pb-2">Accommodation</h4>
+                <p class="small mb-0">{{ getAccommodationText() }}</p>
+              </div>
+              <div class="col-12">
+                <h4 class="h6 text-ghibli fw-bold border-bottom pb-2">Payment Details</h4>
+                <ul class="list-unstyled mb-0 small">
+                  <li class="mb-1"><strong>Cardholder:</strong> {{ form.cardholderName }}</li>
+                  <li class="mb-1"><strong>Card Number:</strong> .... .... .... {{ maskedCardNumber() }}</li>
+                  <li class="mb-1"><strong>Expiration:</strong> {{ form.expirationDate }}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
