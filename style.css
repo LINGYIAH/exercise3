@@ -25,7 +25,7 @@
 body {
     background: url('assets/bg-characters.jpg') center/cover no-repeat fixed;
     background-color: #f9faf7;
-    font-family: 'Luna', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     color: #333;
     min-height: 100vh;
     margin: 0;
@@ -39,6 +39,14 @@ body::before {
 #app {
     background: transparent;
     min-height: 100vh;
+}
+
+/* 只有这些外部文字使用 Luna 字体 */
+header h1,
+header .lead,
+.accordion-button,
+.btn-ghibli {
+    font-family: 'Luna', sans-serif;
 }
 
 header h1 {
@@ -125,6 +133,13 @@ header .lead {
     padding: 1.5rem;
     background-color: #ffffff;
     border-top: 1px solid #eef2ee;
+    /* 内部恢复系统默认字体 */
+    font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* 内部所有元素也统一继承 */
+.accordion-body * {
+    font-family: inherit;
 }
 
 .form-control,
